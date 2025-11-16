@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -195,5 +195,229 @@
         }
     });
 </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Application - Bank</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('icici.jpg') no-repeat center center fixed; /* Replace with actual ICICI Bank image URL */
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff; /* White text to contrast with background */
+        }
+
+        /* Add a dark overlay to the background image for better text visibility */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4); /* Dark overlay */
+            z-index: -1;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+            padding: 30px 50px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 450px;
+            max-width: 100%;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            color: #4caf50; /* Green color to represent financial health */
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 20px;
+            margin-top: 6px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s ease, box-shadow 0.3s ease;
+            background-color: #f9f9f9;
+        }
+
+        input:focus, select:focus {
+            border-color: #00bcd4;
+            box-shadow: 0 0 8px rgba(0, 188, 212, 0.5);
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(to right, #4caf50, #81c784);
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background: linear-gradient(to right, #388e3c, #66bb6a);
+        }
+
+        .result {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        .approved {
+            color: #28a745;
+        }
+
+        .denied {
+            color: #dc3545;
+        }
+
+        .error {
+            color: #ff9800;
+            border: 1px solid #ff9800;
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 1.1em;
+        }
+
+        .form-footer {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <div class="container">
+        <h2>Loan Application</h2>
+        <form id="loanForm">
+            <label for="age">Age:</label>
+            <input type="number" name="age" required>
+
+            <label for="income">Income:</label>
+            <input type="number" name="income" required>
+
+            <label for="loan_amount">Loan Amount:</label>
+            <input type="number" name="loan_amount" required>
+
+            <label for="loan_term">Loan Term (months):</label>
+            <input type="number" name="loan_term" required>
+
+            <label for="credit_score">Credit Score:</label>
+            <input type="number" name="credit_score" required>
+
+            <label for="gender">Gender:</label>
+            <select name="gender" required>
+                <option value="" disabled selected>Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+
+            <label for="married">Married:</label>
+            <select name="married" required>
+                <option value="" disabled selected>Select Marital Status</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+            </select>
+
+            <button type="submit">Submit Application</button>
+        </form>
+
+        <div class="result" id="result"></div>
+
+        <div class="form-footer">
+            <p>Powered by ICICI Bank</p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById("loanForm");
+        const resultDiv = document.getElementById("result");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            resultDiv.textContent = "";
+            resultDiv.className = "result";
+
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = isNaN(value) ? value : Number(value);
+            });
+
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                // ✅ Show backend model/feature errors clearly
+                if (result.error) {
+                    resultDiv.textContent = "⚠ " + result.error;
+                    resultDiv.classList.add("error");
+                    return;
+                }
+
+                // ✅ Approved / Denied cases
+                if (result.prediction === "approved") {
+                    resultDiv.textContent = "✅ Loan Status: APPROVED";
+                    resultDiv.classList.add("approved");
+                } else if (result.prediction === "denied") {
+                    resultDiv.textContent = "❌ Loan Status: DENIED";
+                    resultDiv.classList.add("denied");
+                } else {
+                    resultDiv.textContent = "⚠ Unexpected response format.";
+                    resultDiv.classList.add("error");
+                }
+            } catch (err) {
+                resultDiv.textContent = "⚠ Error: " + err.message;
+                resultDiv.classList.add("error");
+            }
+        });
+    </script>
 </body>
 </html>
